@@ -1,0 +1,42 @@
+{% extends 'flatpages/default.html' %}
+
+{% block content %}
+<h1>Категории статей</h1>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="categories-list">
+    {% for category in categories %}
+    <div class="category card mb-3">
+        <div class="card-body">
+            <h3 class="card-title">{{ category.name }}</h3>
+            {% if user.is_authenticated %}
+                {% if category.id in user_subscriptions %}
+                    <form method="post" action="{% url 'unsubscribe_category' category.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Отписаться</button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'subscribe_category' category.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Подписаться</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p><a href="{% url 'login' %}">Войдите</a> чтобы подписаться</p>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p>Категории пока не добавлены.</p>
+    {% endfor %}
+</div>
+{% endblock content %}

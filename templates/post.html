@@ -1,0 +1,37 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+<!-- Название у нас будет products -->
+{% block title %}
+Новость
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим все новости -->
+{% block content %}
+<h1>НОВОСТЬ</h1>
+   <hr>
+   {% if newspost %}
+       <table>
+           <tr>
+               <td>Название</td>
+               <td>Дата загрузки страницы</td>
+               <td>Текст</td>
+           </tr>
+
+           <tr>
+               <!-- Не забываем, что переменные в шаблоне ничем не отличаются
+                от переменных в Python. Здесь также можно получать доступ к
+                полям объекта модели. Например, здесь мы выводим имя,
+                текущую дату, и т.д.  -->
+               <td>{{ newspost.title|currency }}</td>
+               <td>{{ time_now|date:'d.M.Y' }}</td>
+               <td>{{ newspost.text|currency }}</td>
+
+           </tr>
+
+
+       </table>
+   {% else %}
+       <h2> Новость отсутствует!</h2>
+   {% endif %}
+{% endblock content %}

@@ -1,0 +1,98 @@
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+<!-- Подключаем новый файл с нашим тегом -->
+{% load custom_tags %}
+
+{% block title %}
+Новости
+{% endblock title %}
+
+{% block content %}
+   <h1>Все новости</h1>
+
+     <!-- Отображение сообщений -->
+   {% if request.GET.message %}
+   <div class="alert alert-success alert-dismissible fade show" role="alert">
+       {{ request.GET.message }}
+       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+   </div>
+   {% endif %}
+
+   <h3>{% current_time '%b %d %Y' %}</h3>
+
+   <!-- Фильтры и поиск -->
+   <form method="get">
+       {{ filterset.form.as_p }}
+       <button type="submit" class="btn btn-primary">Найти</button>
+   </form>
+   <hr>
+
+   {% if newsposts %}
+       <!-- Карточки постов -->
+       {% for post in newsposts %}
+       <div class="post card mb-4">
+           <div class="card-body">
+               <h2 class="card-title">{{ post.title|currency }}</h2>
+               <p class="card-text">{{ post.text|currency|truncatechars:20 }}</p>
+               <p class="text-muted">Автор: {{ post.author.authorUser.username }}, {{ post.dateCreation|date:"d.m.Y H:i" }}</p>
+               <p>Категории:
+                   {% for category in post.postCategory.all %}
+                   <span class="badge bg-secondary">{{ category.name }}</span>
+                   {% endfor %}
+               </p>
+               <p>Тип: {{ post.categoryType }}</p>
+               <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">Читать далее</a>
+           </div>
+       </div>
+       {% endfor %}
+   {% else %}
+       <h2>Новостей нет!</h2>
+   {% endif %}
+
+   <!-- Пагинация -->
+   {% if page_obj.has_previous %}
+       <a href="?page=1">1</a>
+       {% if page_obj.previous_page_number != 1 %}
+           ...
+           <a href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+   {% endif %}
+
+   {{ page_obj.number }}
+
+   {% if page_obj.has_next %}
+       <a href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+           ...
+           <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+       {% endif %}
+   {% endif %}
+
+{% endblock content %}
+
+{% block categories %}
+<div class="categories-sidebar mt-5">
+    <h3>Категории</h3>
+    {% for category in categories %}
+    <div class="category-item mb-2">
+        <strong>{{ category.name }}</strong>
+        {% if user.is_authenticated %}
+            {% if category.id in user_subscriptions %}
+                <form method="post" action="{% url 'unsubscribe_category' category.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Отписаться</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'subscribe_category' category.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Подписаться</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <small><a href="{% url 'login' %}">Войдите чтобы подписаться</a></small>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock categories %}
